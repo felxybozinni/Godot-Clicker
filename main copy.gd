@@ -4,7 +4,7 @@ extends Control
 #except for the web stuff, of course! The web stuff is handled automatically by Godot (JavaScript and HTML) and the YML is from Github, so I did not write those files. I love Godot.
 
 #ints
-var value = 99999999999999
+var value = 999999999999
 var incval = 1
 var boughtups = 0
 var cost = 5
@@ -12,6 +12,10 @@ var percycle = 1
 var cyclelength = 10
 var newcharbodycost = 1000
 var char2ds = 0
+var decchartimecost = 10000
+var mult2dcharcost = 5000
+var char2dmult = 1
+var changetime = 15
 #bools
 var hasshop = false
 var hasnode2D = false
@@ -32,34 +36,34 @@ const CHARACTERBODY2DICON = preload("uid://dmx07nteigwxe")
 @onready var valdisp: Label = $Main/infobox/valdisp
 @onready var shop: CanvasLayer = $Main/Shop
 @onready var node_2d: CenterContainer = $Main/Node2D
-@onready var item_list: ItemList = $Main/Shop/ItemList
+@onready var item_list: ItemList = $"Main/Shop/FoldableContainer/TabContainer/Basic upgrades"
 @onready var node_2_dtime: Timer = $Main/Node2D/node2dtime
 @onready var node_2_dbar: TextureProgressBar = $Main/Node2D/node2dbar
 @onready var idledisp: Label = $Main/infobox/idledisp
 @onready var control: CenterContainer = $Main/Control
 @onready var main: Control = $"."
 @onready var mainlayer: CanvasLayer = $Main
-@onready var item_list_character_2d: ItemList = $Main/Shop/ItemListCharacter2D
-@onready var option_button: OptionButton = $Main/Shop/OptionButton
+@onready var item_list_character_2d: ItemList = $Main/Shop/FoldableContainer/TabContainer/Characterbody2D
 @onready var notifier: Label = $Main/Shop/Notifier
 @onready var showlength: Timer = $Main/Shop/Notifier/Showlength
 @onready var notifprog: ProgressBar = $Main/Shop/Notifier/Notifprog
 @onready var path_follow_2d: PathFollow2D = $Main/Control/Path2D/PathFollow2D
-@onready var char_2_ds: CanvasLayer = $Main/Char2ds
+@onready var char_2s: Node2D = $Main/char2s
 @onready var numbers: CanvasLayer = $Main/numbers
 @onready var marker_2d: Marker2D = $Main/Control/Marker2D
+@onready var tab_container: TabContainer = $Main/Shop/FoldableContainer/TabContainer
 
 #tcsns
 const MONEYNUMBER = preload("uid://jiv5qp3e1dn6")
 const CHARBODY_2D = preload("uid://4p2s52kgbnh1")
 
-func controlpressed() -> void:
+func controlpressed():
 	value += incval
 	var instance = MONEYNUMBER.instantiate()
 	numbers.add_child(instance)
 	if instance.global_position == Vector2(0,0):
 		instance.text = "+"+str(snapped(incval,0.1))
-		instance.global_position = Vector2(randf_range(350,450),150)
+		instance.global_position = Vector2(randf_range(200,600),150)
 
 func _process(delta: float) -> void:
 	valdisp.text = "Hackatime minutes: "+str(snapped(value,0.1))
@@ -69,9 +73,11 @@ func _process(delta: float) -> void:
 	idledisp.text = str(snapped(percycle,0.1))+" per "+str(snapped(cyclelength,0.01))+"s"
 	if unlockedchar2d == false && value >= 500:
 		unlockedchar2d = true
-		option_button.add_icon_item(CHARACTERBODY2DICON,"CharacterBody2D",1)
+		tab_container.set_tab_hidden(1,false)
 		notify()
+		
 	notifprog.value = (showlength.time_left / showlength.wait_time) * 100
+	get_tree().call_group("char2dbody","set","changetime",changetime)
 
 func _ready() -> void:
 	addrandshopitem()
@@ -80,7 +86,7 @@ func addrandshopitem():
 	var output : String
 	output = str(adjectives[randf_range(0,adjectives.size())])+" "+str(nouns[randf_range(0,nouns.size())]+" "+str(cost)+" minutes")
 	boughtups += 1
-	cost = cost + ((boughtups^2)*0.1)
+	cost = cost + ((boughtups^5)*0.25)
 	cost = snapped(cost,0.01)
 	if hasnode2D == true && randi_range(0,2) != 0:
 		if randi_range(0,1) == 1:
@@ -101,6 +107,7 @@ func _on_node_2_dtime_timeout() -> void:
 	if hasnode2D == true:
 		value += percycle
 		node_2_dtime.wait_time = cyclelength
+		node_2_dtime.start()
 		var instance = MONEYNUMBER.instantiate()
 		numbers.add_child(instance)
 		if instance.global_position == Vector2(0,0):
@@ -126,7 +133,7 @@ func _on_item_list_item_selected(index: int) -> void:
 			item_list.deselect_all()
 	if value >= price && price > 0:
 		if inshoptype [index] == "control":
-			incval *= randf_range(1.05,1.25)
+			incval *= randf_range(1.08,1.25)
 		else:
 			if inshoptype [index] == "node2":
 				percycle *= randf_range(1.1,1.3)
@@ -177,10 +184,38 @@ func _on_item_list_character_2d_item_selected(index: int) -> void:
 			var instance = CHARBODY_2D.instantiate()
 			instance.texture = CHARACTERBODY2DICON
 			print(char2ds)
-			char_2_ds.add_child(instance)
+			char_2s.add_child(instance)
 			instance.global_position = path_follow_2d.global_position
 			path_follow_2d.progress_ratio = char2ds * 0.05
 			instance.rotation = (marker_2d.global_position - instance.global_position).angle()
 			instance.rotation_degrees += 90
+			instance.add_to_group("char2dbody")
+			instance.connect("click",Callable(self,"controlpressed2d"))
 			item_list_character_2d.set_item_text(0,"New Character2D "+str(newcharbodycost)+" minutes")
 			item_list_character_2d.deselect_all()
+		else:
+			item_list_character_2d.deselect_all()
+	if index == 1:
+		if value >= decchartimecost:
+			value -= decchartimecost
+			changetime *= 0.9
+			get_tree().call_group("char2dbody","set","changetime",changetime)
+			item_list_character_2d.deselect_all()
+			decchartimecost *= 3
+			item_list_character_2d.set_item_text(1,"Decrease wait time "+str(decchartimecost)+" minutes")
+	if index == 2:
+		if value >= mult2dcharcost:
+			value -= mult2dcharcost
+			char2dmult *= 1.5
+			item_list_character_2d.deselect_all()
+			mult2dcharcost *= 9
+			item_list_character_2d.set_item_text(2,"Multiplier "+str(mult2dcharcost)+" minutes")
+	item_list_character_2d.deselect_all()
+
+func controlpressed2d():
+	value += incval * char2dmult
+	var instance = MONEYNUMBER.instantiate()
+	numbers.add_child(instance)
+	if instance.global_position == Vector2(0,0):
+		instance.text = "+"+str(snapped(incval * char2dmult,0.1))
+		instance.global_position = Vector2(randf_range(200,600),150)
