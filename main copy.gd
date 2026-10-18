@@ -2,9 +2,10 @@ extends Control
 
 #welcome to my code. I've tried my best to keep it legible, but I'm not very good with that, haha! some of the function names are a bit confusing. This project is written entirely in GDScript, 
 #except for the web stuff, of course! The web stuff is handled automatically by Godot (JavaScript and HTML) and the YML is from Github, so I did not write those files. I love Godot.
+#I hope you enjoy the game! I'm planning on updating this for futurre weeks as well, so I'm pretty hyped for that. Can't wait, this is my first hack club event!
 
 #ints
-var value = 999999999999
+var value = 0
 var incval = 1
 var boughtups = 0
 var cost = 5
@@ -52,6 +53,7 @@ const CHARACTERBODY2DICON = preload("uid://dmx07nteigwxe")
 @onready var numbers: CanvasLayer = $Main/numbers
 @onready var marker_2d: Marker2D = $Main/Control/Marker2D
 @onready var tab_container: TabContainer = $Main/Shop/FoldableContainer/TabContainer
+@onready var clicksound: AudioStreamPlayer2D = $Main/clicksound
 
 #tcsns
 const MONEYNUMBER = preload("uid://jiv5qp3e1dn6")
@@ -64,6 +66,7 @@ func controlpressed():
 	if instance.global_position == Vector2(0,0):
 		instance.text = "+"+str(snapped(incval,0.1))
 		instance.global_position = Vector2(randf_range(200,600),150)
+		clicksound.play()
 
 func _process(delta: float) -> void:
 	valdisp.text = "Hackatime minutes: "+str(snapped(value,0.1))
