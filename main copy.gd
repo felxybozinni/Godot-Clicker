@@ -5,7 +5,7 @@ extends Control
 #I hope you enjoy the game! I'm planning on updating this for futurre weeks as well, so I'm pretty hyped for that. Can't wait, this is my first hack club event!
 
 #ints
-var value = 0
+var value = 99999999
 var incval = 1
 var boughtups = 0
 var cost = 5
@@ -17,11 +17,24 @@ var decchartimecost = 10000
 var mult2dcharcost = 5000
 var char2dmult = 1
 var changetime = 15
+var newrigidbodycost = 25000
+var rigidbodies = 0
+var decrigtimecost = 40000
+var profrigcost = 50000
+var profrigmult = 5
+var newtextrectcost = 100000
+var textrects = 0
+var dectexttimecost = 150000
+var textprofcost = 150000
+var textmult = 10
 #bools
 var hasshop = false
 var hasnode2D = false
 var node2disinshop = false
 var unlockedchar2d = false
+var unlockedrigbod2d = false
+var unlockedtextrect = false
+var maxrects = false
 #arrays
 var nouns = ["keyboard","mouse","screen","pixels","fingers","files","strings","coding","servers","CPUs","cooling","GPUs","circuits","motherboard","buttons"]
 var adjectives = ["Efficient","Quicker","Speedy","Overloaded","Unravelled","Incredible","Optimised","Sponsored","Heated"]
@@ -54,10 +67,19 @@ const CHARACTERBODY2DICON = preload("uid://dmx07nteigwxe")
 @onready var marker_2d: Marker2D = $Main/Control/Marker2D
 @onready var tab_container: TabContainer = $Main/Shop/FoldableContainer/TabContainer
 @onready var clicksound: AudioStreamPlayer2D = $Main/clicksound
+@onready var rigidbody_2dlist: ItemList = $Main/Shop/FoldableContainer/TabContainer/Rigidbody2D
+@onready var rigidbodytimer: Timer = $Main/rigidbodytimer
+@onready var texturerectlist: ItemList = $Main/Shop/FoldableContainer/TabContainer/Texturerectlist
+@onready var textrecttimer: Timer = $Main/Textrecttimer
 
 #tcsns
 const MONEYNUMBER = preload("uid://jiv5qp3e1dn6")
 const CHARBODY_2D = preload("uid://4p2s52kgbnh1")
+const RIGIDBODY = preload("uid://6x7yqyb3navh")
+const TEXTURERECT = preload("uid://d2ye7qem4tea")
+
+#signals
+signal forceapply
 
 func controlpressed():
 	value += incval
@@ -78,9 +100,22 @@ func _process(delta: float) -> void:
 		unlockedchar2d = true
 		tab_container.set_tab_hidden(1,false)
 		notify()
-		
+	if unlockedrigbod2d == false && value >= 10000:
+		unlockedrigbod2d = true
+		tab_container.set_tab_hidden(2,false)
+		notify()
+	if unlockedtextrect == false && value >= 65000:
+		unlockedtextrect = true
+		tab_container.set_tab_hidden(3,false)
+		notify()
+
+
 	notifprog.value = (showlength.time_left / showlength.wait_time) * 100
 	get_tree().call_group("char2dbody","set","changetime",changetime)
+	get_tree().call_group("rigidbody","set","progress",rigidbodytimer.time_left / rigidbodytimer.wait_time)
+	get_tree().call_group("textrects","set","prog",textrecttimer.time_left / textrecttimer.wait_time)
+	
+	
 
 func _ready() -> void:
 	addrandshopitem()
@@ -222,3 +257,90 @@ func controlpressed2d():
 	if instance.global_position == Vector2(0,0):
 		instance.text = "+"+str(snapped(incval * char2dmult,0.1))
 		instance.global_position = Vector2(randf_range(200,600),150)
+
+
+func _on_rigidbody_2d_item_selected(index: int) -> void:
+	if index == 0:
+		if value >= newrigidbodycost:
+			value -= newrigidbodycost
+			rigidbodies += 1
+			newrigidbodycost *= 7
+			for i in 3:
+				var instance = RIGIDBODY.instantiate()
+				mainlayer.add_child(instance)
+				instance.global_position = Vector2(randf_range(50,750),randf_range(50,600))
+				instance.add_to_group("rigidbody")
+				instance.collidevent.connect(rigidbodycollided)
+				connect("forceapply",Callable(instance,"applyforce"))
+			rigidbody_2dlist.set_item_text(0,"New RigidBody2Ds "+str(newrigidbodycost)+" minutes")
+			rigidbody_2dlist.deselect_all()
+		else:
+			rigidbody_2dlist.deselect_all()
+	if index == 1:
+		if value >= decrigtimecost:
+			value -= decrigtimecost
+			rigidbodytimer.wait_time *= 0.8
+			decrigtimecost *= 3.5
+			rigidbody_2dlist.set_item_text(1,"Decrease force interval "+str(decrigtimecost)+" minutes")
+	if index == 2:
+		if value >= profrigcost:
+			value -= profrigcost
+			profrigmult *= 1.5
+			profrigcost *= 6
+			rigidbody_2dlist.set_item_text(2,"Increase collision payout "+str(profrigcost)+" minutes")
+	rigidbody_2dlist.deselect_all()
+
+func rigidbodycollided(x,y):
+	value += incval * profrigmult
+	var instance = MONEYNUMBER.instantiate()
+	numbers.add_child(instance)
+	if instance.global_position == Vector2(0,0):
+		instance.text = "+"+str(snapped(incval*profrigmult,0.1))
+		instance.global_position = Vector2(x,y)
+
+func _on_rigidbodytimer_timeout() -> void:
+	forceapply.emit()
+
+
+func _on_texturerectlist_item_selected(index: int) -> void:
+	if index == 0:
+		if value >= newtextrectcost:
+			if maxrects == false:
+				value -= newtextrectcost
+				newtextrectcost *= 3.5
+				var instance = TEXTURERECT.instantiate()
+				mainlayer.add_child(instance)
+				instance.global_position = Vector2((textrects*80)+270,10)
+				textrects += 1
+				instance.add_to_group("textrects")
+				if textrects >= 15:
+					texturerectlist.set_item_text(0,"limit reached")
+					maxrects = true
+				else:
+					texturerectlist.set_item_text(0,"New TextureRect "+str(newtextrectcost)+" minutes")
+				texturerectlist.deselect_all()
+			else:
+				texturerectlist.deselect_all()
+	if index == 1:
+		if value >= dectexttimecost:
+			value -= dectexttimecost
+			textrecttimer.wait_time *= 0.8
+			dectexttimecost *= 3.5
+			texturerectlist.set_item_text(1,"Decrease Cycle Time "+str(dectexttimecost)+" minutes")
+	if index == 2:
+		if value >= textprofcost:
+			value -= textprofcost
+			textmult *= 1.5
+			textprofcost *= 6
+			texturerectlist.set_item_text(2,"Payout increase "+str(textprofcost)+" minutes")
+	texturerectlist.deselect_all()
+
+
+func _on_textrecttimer_timeout() -> void:
+	for i in get_tree().get_nodes_in_group("textrects"):
+		value += incval * textmult
+		var instance = MONEYNUMBER.instantiate()
+		numbers.add_child(instance)
+		if instance.global_position == Vector2(0,0):
+			instance.text = "+"+str(snapped(incval*textmult,0.1))
+			instance.global_position = Vector2(i.global_position.x,i.global_position.y)
