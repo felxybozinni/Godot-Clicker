@@ -8,6 +8,7 @@ var startpos
 var hassetpos = false
 signal click
 var changetime = 15
+@onready var progress_bar: ProgressBar = $ProgressBar
 
 func _on_timer_timeout() -> void:
 	moving = true
@@ -33,3 +34,5 @@ func _process(delta: float) -> void:
 				movingto = true
 	time = changetime
 	timer.wait_time = time
+	
+	progress_bar.value = timer.time_left/ timer.wait_time

@@ -12,5 +12,5 @@ func _on_body_entered(body: Node) -> void:
 		collidevent.emit(global_position.x,global_position.y)
 
 func applyforce():
-	linear_velocity = Vector2(randf_range(300,-300),randf_range(-1000,-500))
+	linear_velocity = Vector2(randf_range(300,-300),randf_range(-1000,200))
 	angular_velocity = randf_range(30,-30)
