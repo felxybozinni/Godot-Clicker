@@ -19,3 +19,5 @@ Prestige
 <img width="2560" height="1440" alt="Screenshot 2026-10-18 at 16 53 42" src="https://github.com/user-attachments/assets/f7b0433a-026a-4909-bcf1-529d60db421d" />
 <img width="2560" height="1440" alt="Screenshot 2026-10-21 at 10 54 27" src="https://github.com/user-attachments/assets/9ae48af4-73c8-4d71-918d-defe80833ae7" />
 <img width="2560" height="1440" alt="Screenshot 2026-10-25 at 19 22 17" src="https://github.com/user-attachments/assets/1c65d04d-7e76-4ba8-8fae-f4f197de1969" />
+
+Unfortunately the game does not run locally as of right now, and simply plays in the browser. This is because the project in Godot uses a certain setting that the ETC2 ASTC texture format must be used to export to MacOS, and the project breaks with that.
