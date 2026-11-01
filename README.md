@@ -14,8 +14,7 @@ ColorRects,
 Area2D,
 Prestige
 
-In dev:
--
+ playable link: https://felxybozinni.github.io/Godot-Clicker/webexportweek1penult/Godot%20clicker.html
 
 <img width="2560" height="1440" alt="Screenshot 2026-10-18 at 16 53 42" src="https://github.com/user-attachments/assets/f7b0433a-026a-4909-bcf1-529d60db421d" />
 <img width="2560" height="1440" alt="Screenshot 2026-10-21 at 10 54 27" src="https://github.com/user-attachments/assets/9ae48af4-73c8-4d71-918d-defe80833ae7" />
